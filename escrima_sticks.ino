@@ -61,7 +61,7 @@ int accelCount[3];  // Stores the 12-bit signed value
 float accelG[3];  // Stores the real accel value in g's
 
 bool electrified = false;
-int electrifyStart;
+unsigned long electrifyStart;
 
 
 void setup()
@@ -86,7 +86,7 @@ void setup()
   }
   else
   {
-    Serial.print("Could not connect to MMA8452Q: 0x");
+    Serial.println("Could not connect to MMA8452Q: 0x");
     Serial.println(c, HEX);
     while(1) ; // Loop forever if communication doesn't happen
   }
@@ -95,10 +95,15 @@ void setup()
 void loop()
 {  
   static byte source;
-  if(electrified && millis() - electrifyStart > 1000)
+  unsigned long now = millis();
+  if(electrified && (now - electrifyStart > 1000))
   {
     analogWrite(19, 0);
     electrified = false;
+    Serial.println("Electrify Timer Elapsed");
+    Serial.print("stop: ");
+    Serial.print(electrifyStart);
+    Serial.println();
   }
 
   //outPutGData();
@@ -173,10 +178,10 @@ void tapHandler()
   if ((source & 0x10)==0x10)  // If AxX bit is set
   {
     if ((source & 0x08)==0x08)  // If DPE (double puls) bit is set
-      Serial.print("    Double Tap (2) on X");  // tabbing here for visibility
+      Serial.println("    Double Tap (2) on X");  // tabbing here for visibility
     else
     {
-      Serial.print("Single (1) tap on X");
+      Serial.println("Single (1) tap on X");
       electrify();
     }
 
@@ -188,10 +193,10 @@ void tapHandler()
   if ((source & 0x20)==0x20)  // If AxY bit is set
   {
     if ((source & 0x08)==0x08)  // If DPE (double puls) bit is set
-      Serial.print("    Double Tap (2) on Y");
+      Serial.println("    Double Tap (2) on Y");
     else
     {
-      Serial.print("Single (1) tap on Y");
+      Serial.println("Single (1) tap on Y");
       electrify();
     }
 
@@ -203,10 +208,10 @@ void tapHandler()
   if ((source & 0x40)==0x40)  // If AxZ bit is set
   {
     if ((source & 0x08)==0x08)  // If DPE (double puls) bit is set
-      Serial.print("    Double Tap (2) on Z");
+      Serial.println("    Double Tap (2) on Z");
     else
     {
-      Serial.print("Single (1) tap on Z");
+      Serial.println("Single (1) tap on Z");
       electrify();
     }
     if ((source & 0x04)==0x04)  // If PoIZ is set
@@ -404,6 +409,9 @@ void electrify(){
 
       analogWrite(19, 255);
       electrifyStart = millis();
+      Serial.print("start: ");
+      Serial.print(electrifyStart);
+      Serial.println();
       electrified = true;
       Serial.println("ELECTRIFY!");
 }
